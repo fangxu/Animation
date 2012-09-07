@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Animation", "Animation\Animation.csproj", "{0807661C-2746-415D-8F3B-74C97E39CB5B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http", "..\SVDown\Http\Http.csproj", "{74E41ACC-A011-48A4-B1F0-33743CE0DF68}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -15,10 +13,6 @@ Global
 		{0807661C-2746-415D-8F3B-74C97E39CB5B}.Debug|x86.Build.0 = Debug|x86
 		{0807661C-2746-415D-8F3B-74C97E39CB5B}.Release|x86.ActiveCfg = Release|x86
 		{0807661C-2746-415D-8F3B-74C97E39CB5B}.Release|x86.Build.0 = Release|x86
-		{74E41ACC-A011-48A4-B1F0-33743CE0DF68}.Debug|x86.ActiveCfg = Debug|x86
-		{74E41ACC-A011-48A4-B1F0-33743CE0DF68}.Debug|x86.Build.0 = Debug|x86
-		{74E41ACC-A011-48A4-B1F0-33743CE0DF68}.Release|x86.ActiveCfg = Release|x86
-		{74E41ACC-A011-48A4-B1F0-33743CE0DF68}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

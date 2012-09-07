@@ -71,7 +71,7 @@
             this.ToolStripMenuItemDownload,
             this.ToolStripMenuItemOpen});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 114);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(101, 92);
             // 
             // ToolStripMenuItemDetail
             // 
@@ -92,7 +92,7 @@
             // ToolStripMenuItemTitleCopy
             // 
             this.ToolStripMenuItemTitleCopy.Name = "ToolStripMenuItemTitleCopy";
-            this.ToolStripMenuItemTitleCopy.Size = new System.Drawing.Size(152, 22);
+            this.ToolStripMenuItemTitleCopy.Size = new System.Drawing.Size(140, 22);
             this.ToolStripMenuItemTitleCopy.Text = "标题";
             this.ToolStripMenuItemTitleCopy.Click += new System.EventHandler(this.ToolStripMenuItemTitleCopy_Click);
             // 
@@ -100,7 +100,7 @@
             // 
             this.ToolStripMenuItemtorrentCopy.Name = "ToolStripMenuItemtorrentCopy";
             this.ToolStripMenuItemtorrentCopy.Size = new System.Drawing.Size(152, 22);
-            this.ToolStripMenuItemtorrentCopy.Text = "torrent地址";
+            this.ToolStripMenuItemtorrentCopy.Text = "链接";
             this.ToolStripMenuItemtorrentCopy.Click += new System.EventHandler(this.ToolStripMenuItemtorrentCopy_Click);
             // 
             // ToolStripMenuItemDownload
@@ -123,13 +123,13 @@
             // toolStripContainer1.ContentPanel
             // 
             this.toolStripContainer1.ContentPanel.Controls.Add(this.listView1);
-            this.toolStripContainer1.ContentPanel.Size = new System.Drawing.Size(854, 395);
+            this.toolStripContainer1.ContentPanel.Size = new System.Drawing.Size(854, 481);
             this.toolStripContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.toolStripContainer1.LeftToolStripPanelVisible = false;
             this.toolStripContainer1.Location = new System.Drawing.Point(0, 0);
             this.toolStripContainer1.Name = "toolStripContainer1";
             this.toolStripContainer1.RightToolStripPanelVisible = false;
-            this.toolStripContainer1.Size = new System.Drawing.Size(854, 420);
+            this.toolStripContainer1.Size = new System.Drawing.Size(854, 506);
             this.toolStripContainer1.TabIndex = 7;
             this.toolStripContainer1.Text = "toolStripContainer1";
             // 
@@ -153,7 +153,7 @@
             this.listView1.Location = new System.Drawing.Point(0, 0);
             this.listView1.Name = "listView1";
             this.listView1.ShowItemToolTips = true;
-            this.listView1.Size = new System.Drawing.Size(854, 395);
+            this.listView1.Size = new System.Drawing.Size(854, 481);
             this.listView1.TabIndex = 0;
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
@@ -175,6 +175,10 @@
             // 
             this.listView_kind.Text = "kind";
             // 
+            // listView_team
+            // 
+            this.listView_team.Text = "team";
+            // 
             // toolStrip1
             // 
             this.toolStrip1.Dock = System.Windows.Forms.DockStyle.None;
@@ -190,15 +194,17 @@
             this.toolStripLabel1,
             this.toolStripTextBox1,
             this.toolStripButton1});
+            this.toolStrip1.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.Flow;
             this.toolStrip1.Location = new System.Drawing.Point(3, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(719, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(739, 25);
             this.toolStrip1.TabIndex = 0;
             // 
             // toolStripLabel2
             // 
+            this.toolStripLabel2.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.toolStripLabel2.Name = "toolStripLabel2";
-            this.toolStripLabel2.Size = new System.Drawing.Size(44, 22);
+            this.toolStripLabel2.Size = new System.Drawing.Size(44, 17);
             this.toolStripLabel2.Text = "星期：";
             // 
             // toolStripComboBox1
@@ -220,7 +226,7 @@
             // toolStripLabel3
             // 
             this.toolStripLabel3.Name = "toolStripLabel3";
-            this.toolStripLabel3.Size = new System.Drawing.Size(44, 22);
+            this.toolStripLabel3.Size = new System.Drawing.Size(44, 17);
             this.toolStripLabel3.Text = "新番：";
             // 
             // toolStripComboBox2
@@ -234,45 +240,39 @@
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 23);
             // 
             // toolStripLabel4
             // 
             this.toolStripLabel4.Name = "toolStripLabel4";
-            this.toolStripLabel4.Size = new System.Drawing.Size(44, 22);
+            this.toolStripLabel4.Size = new System.Drawing.Size(44, 17);
             this.toolStripLabel4.Text = "分类：";
             // 
             // toolStripComboBox3
             // 
             this.toolStripComboBox3.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.toolStripComboBox3.FlatStyle = System.Windows.Forms.FlatStyle.Standard;
-            this.toolStripComboBox3.Items.AddRange(new object[] {
-            "all",
-            "新番连载",
-            "完整动画",
-            "剧场版",
-            "DVDRIP",
-            "BDRIP"});
             this.toolStripComboBox3.Name = "toolStripComboBox3";
             this.toolStripComboBox3.Size = new System.Drawing.Size(121, 25);
-            this.toolStripComboBox3.SelectedIndexChanged += new System.EventHandler(this.toolStripComboBox3_SelectedIndexChanged);
+            this.toolStripComboBox3.SelectedIndexChanged += new System.EventHandler(this.toolStripComboBox3_SelectedIndexChanged);           
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 23);
             // 
             // toolStripLabel1
             // 
             this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Size = new System.Drawing.Size(56, 22);
+            this.toolStripLabel1.Size = new System.Drawing.Size(56, 17);
             this.toolStripLabel1.Text = "关键字：";
             // 
             // toolStripTextBox1
             // 
             this.toolStripTextBox1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.toolStripTextBox1.Name = "toolStripTextBox1";
-            this.toolStripTextBox1.Size = new System.Drawing.Size(100, 25);
+            this.toolStripTextBox1.Size = new System.Drawing.Size(100, 23);
+            this.toolStripTextBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.toolStripTextBox1_KeyPress);
             // 
             // toolStripButton1
             // 
@@ -281,7 +281,7 @@
             this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
             this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(36, 22);
+            this.toolStripButton1.Size = new System.Drawing.Size(36, 21);
             this.toolStripButton1.Text = "搜索";
             this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click);
             // 
@@ -289,7 +289,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(854, 420);
+            this.ClientSize = new System.Drawing.Size(854, 506);
             this.Controls.Add(this.toolStripContainer1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";

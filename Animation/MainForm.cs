@@ -20,6 +20,8 @@ namespace Animation
         private Dictionary<String, String> kinds = null;
         private String kind = null;
         private String EXEPath = null;
+        private String xinFanString = null;
+
         public MainForm()
         {
             EXEPath = System.Environment.CurrentDirectory;
@@ -27,30 +29,45 @@ namespace Animation
             {
                 Directory.CreateDirectory(EXEPath + "/torrent");
             }
-            initKinds();
             InitializeComponent();
+            initKinds();
+            xinFanString = getXinFanString();            
             int d = (int)DateTime.Now.DayOfWeek;
             toolStripComboBox1.SelectedIndex = d - 1;
             toolStripComboBox3.SelectedIndex = 0;
-            updateXinfan();
+            ImageList imageList1 = new ImageList();
+            imageList1.ImageSize = new Size(1, 25);
+            listView1.SmallImageList = imageList1; 
+            //listView1.
+            //toolStripComboBox3.DroppedDown = true;
+            //updateXinfan();
             //updateNew();
+        }
+
+        private String getXinFanString()
+        {
+            String temp = getHtml(@"http://share.dmhy.org/cms/page/name/programme.html");
+            return Regex.Match(temp, @"(//星期日[\s\S]*?)</script>").Groups[1].ToString();
         }
 
         private void initKinds()
         {
             kinds = new Dictionary<String, String>();
-            kinds.Add("all", @"http://bt.ktxp.com/sort-1-1.html");
-            kinds.Add("新番连载", @"http://bt.ktxp.com/sort-12-1.html");
-            kinds.Add("完整动画", @"http://bt.ktxp.com/sort-28-1.html");
-            kinds.Add("剧场版", @"http://bt.ktxp.com/sort-39-1.html");
-            kinds.Add("DVDRIP", @"http://bt.ktxp.com/sort-14-1.html");
-            kinds.Add("BDRIP", @"http://bt.ktxp.com/sort-50-1.html");
+            kinds.Add("all", @"http://share.dmhy.org/");
+            kinds.Add("动画", @"http://share.dmhy.org/topics/list/sort_id/2");
+            kinds.Add("季度全集", @"http://share.dmhy.org/topics/list/sort_id/31");
+            kinds.Add("漫画", @"http://share.dmhy.org/topics/list/sort_id/3");
+            kinds.Add("音乐", @"http://share.dmhy.org/topics/list/sort_id/4");
+            kinds.Add("RAW", @"http://share.dmhy.org/topics/list/sort_id/7");
+            foreach (KeyValuePair<String,String> x in kinds)
+            {
+                toolStripComboBox3.Items.Add(x.Key);
+            }
         }
 
         private void updateXinfan()
         {
-            xinFan = parserXinFan(getHtml(@"http://bt.ktxp.com/playbill.php"),
-                toolStripComboBox1.Items[toolStripComboBox1.SelectedIndex].ToString());
+            xinFan = parserXinFan(toolStripComboBox1.Items[toolStripComboBox1.SelectedIndex].ToString());
             toolStripComboBox2.Items.Clear();
             foreach (KeyValuePair<String, String> item in xinFan)
             {
@@ -59,16 +76,21 @@ namespace Animation
             //toolStripComboBox2.SelectedIndex = 0;
         }
 
-        private Dictionary<String, String> parserXinFan(String html, String week)
+        private Dictionary<String, String> parserXinFan(String week)
         {
             Dictionary<String, String> playbill = new Dictionary<String, String>();
-            Match match = Regex.Match(html, week + @"[\s\S]*?</dt>([\s\S]*?)</dl>");
-            String weekBill = match.Groups[1].ToString();
-            String pattern = @"<dd><a href=""([\s\S]*?)"" target=""_blank"">([\s\S]*?)</a>";
-            MatchCollection matches = Regex.Matches(weekBill, pattern);
+            String xingqi = Regex.Match(xinFanString, @"//" + week + @"[\s\S]*?//星期").Value;
+            String pattern = @"push[\s\S]*?,'([\s\S]*?)','([\s\S]*?)'";
+            MatchCollection matches = Regex.Matches(xingqi, pattern);
+            
             foreach (Match m in matches)
             {
-                playbill.Add(m.Groups[2].ToString(), m.Groups[1].ToString());
+                if (playbill.ContainsValue(m.Groups[2].ToString()))
+               {
+                   break;
+               }
+                playbill.Add(m.Groups[1].ToString(), m.Groups[2].ToString());
+                
             }
             return playbill;
         }
@@ -95,67 +117,84 @@ namespace Animation
             ListViewItem lv;
             foreach (DMItem item in itemList)
             {
-                lv = new ListViewItem(new string[] { item.data.Month+"/"+item.data.Day+" "+item.data.ToShortTimeString(),
-                item.Title, item.size ,item.kind,item.team});
-                if (listView1.Items.Count%2==0)
+                lv = new ListViewItem(new string[] { item.Date,
+                item.Title, item.size ,item.kind,item.Team});
+                if (listView1.Items.Count % 2 == 0)
                 {
                     lv.BackColor = Color.FromArgb(0xccddff);
                 }
+                //lv.Font=
                 listView1.Items.Add(lv);
             }
             listView1.Columns[0].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
             listView1.Columns[1].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
             listView1.Columns[4].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+            int width = 0;
+            for (int i = 0; i < listView1.Columns.Count; i++)
+            {
+                width += listView1.Columns[i].Width;
+            }
+            this.Width = width + 40;
         }
 
         private List<DMItem> parserHtml(String html)
         {//@"<tr class="""">[\s\S]*?(\d{4}/\d{2}/\d{2}\s\d{2}:\d{2})[\s\S]*?target=""_blank"" >\s*?([\S]*?)</a>[\s\S]*?href=""(\S*?)""[\s\S]*?align=""center"">(\S*?)</td>[\s\S]*?</tr>"
             //<td title="2012/09/04 20:55">今天 20:55</td>   <td>297.1MB</td>
             //<a href="/down/1346745933/15907be1c8ddf43eee555a94f50e8e49c9645df8.torrent" class="quick-down cmbg">
-            String dateP = @"<td title=""([\d|/]* \d\d:\d\d)""";
-            String kindP = @"[\s\S]*?l"">(\S*?)</a>";
-            String torrentP = @"[\s\S]*?<a href=""([\S]*?)"" class=""quick-down cmbg"">";
-            String detailP = @"[\s\S]*?<a href=""([\s\S]*?)""";
-            String titleP = @" target=""_blank"">([\s\S]*?)</a>";
-            String sizeP = @"[\s\S]*?<td>([\d|\.]*.B)</td>";
-            String teamP = @"[\s\S]*?[l|e]"">([\s\S]*?)</a>[\s\S]*?</tr>";
-            String pattern = dateP + torrentP + detailP + titleP + sizeP + teamP;
-            if (kind == "all")
+            String dateP = @"<span style=""display: none;"">([\d|/]* \d\d:\d\d)<";
+            String kindP = @"[\s\S]*?<font color=\S*?>(\S*?)<";
+            String titleP = @"[\s\S]*?<td class=""title"">([\s\S]*?)</td>";
+            String torrentP = @"[\s\S]*?href=""([\S]*?)""";
+            //String detailP = @"[\s\S]*?<a href=""([\s\S]*?)""";
+
+            String sizeP = @"[\s\S]*?align=""center"">([\d|\.]*.B)</td>";
+            //String teamP = @"[\s\S]*?[l|e]"">([\s\S]*?)</a>[\s\S]*?</tr>";
+            String pattern = dateP + kindP + titleP+torrentP+sizeP;
+            /*if (kind == "all")
             {
                 pattern = dateP + kindP + torrentP + detailP + titleP + sizeP + teamP;
             }
             else
             {
                 pattern = dateP + torrentP + detailP + titleP + sizeP + teamP;
-            }
+            }*/
             List<DMItem> list = new List<DMItem>();
             DMItem item = null;
             Regex rgx = new Regex(pattern);
+            Regex rgx2 = new Regex(@"href=""([\s\S]*?)""");
+            Regex rgx1 = new Regex(@"_blank"" >([\s\S]*)");
             MatchCollection matches = rgx.Matches(html);
             foreach (Match match in matches)
             {
                 item = new DMItem();
-                if (kind == "all")
+
+                item.Date = match.Groups[1].ToString();
+                item.kind = match.Groups[2].ToString();
+                item.TorrentUrl = match.Groups[4].ToString();
+                //item.DetailUrl = match.Groups[4].ToString();
+                item.Title = striphtml(match.Groups[3].ToString());
+                item.size = match.Groups[5].ToString();
+                //item.team = match.Groups[7].ToString();
+                //String teamTitle = match.Groups[3].ToString();
+                
+                String[] s=Regex.Split(match.Groups[3].ToString(), @"</a>");
+                if (s.Length==2)
                 {
-                    item.data = DateTime.Parse(match.Groups[1].ToString());
-                    item.kind = match.Groups[2].ToString();
-                    item.TorrentUrl = match.Groups[3].ToString();
-                    item.DetailUrl = match.Groups[4].ToString();
-                    item.Title = striphtml(match.Groups[5].ToString());
-                    item.size = match.Groups[6].ToString();
-                    item.team = match.Groups[7].ToString();
-                }
+                    String s1=s[0];
+                    item.Title = striphtml(rgx1.Match(s1).Groups[1].ToString());
+                    item.Team = null;
+                    //Match result = rgx2.Match(s1);
+                    item.DetailUrl = rgx2.Match(s1).Groups[1].ToString();
+                } 
                 else
                 {
-                    item.data = DateTime.Parse(match.Groups[1].ToString());
-                    item.kind = kind;
-                    item.TorrentUrl = match.Groups[2].ToString();
-                    item.DetailUrl = match.Groups[3].ToString();
-                    item.Title = striphtml(match.Groups[4].ToString());
-                    item.size = match.Groups[5].ToString();
-                    item.team = match.Groups[6].ToString();
+                    String s1 = s[0];
+                    item.Team = s1.Substring(s1.LastIndexOf('>')+1, s1.Length - s1.LastIndexOf('>')-1);
+                    s1 = s[1];
+                    item.Title = striphtml(rgx1.Match(s1).Groups[1].ToString());
+                    //Match result = rgx2.Match(s1);
+                    item.DetailUrl = rgx2.Match(s1).Groups[1].ToString();
                 }
-
                 list.Add(item);
             }
             return list;
@@ -173,7 +212,9 @@ namespace Animation
         private String getHtml(String url)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.Timeout = 30 * 1000;
+            request.Timeout = 10 * 1000;
+            request.Method = "GET";
+            request.UserAgent = "Mozilla/4.0";
             Stream rs = request.GetResponse().GetResponseStream();
             byte[] buf = new byte[65535];
             int len = 0;
@@ -189,8 +230,13 @@ namespace Animation
         private void getFile(String fileUrl, String path)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(fileUrl);
+            CookieContainer cc = new CookieContainer();
+            cc.Add(new Cookie("rsspass", "adf651b88f87892db88b62cd60", null, "share.dmhy.org"));
+            cc.Add(new Cookie("uid", "120145", null, "share.dmhy.org"));
+            //cc.Add(new Cookie("rsspass", "adf651b88f87892db88b62cd60", null, "share.dmhy.org"));
             request.Timeout = 30 * 1000;
             request.Method = "GET";
+            request.CookieContainer = cc;
             HttpWebResponse respond = (HttpWebResponse)request.GetResponse();
 
             byte[] buf = new byte[65535];
@@ -232,16 +278,18 @@ namespace Animation
                     return;
                 }
                 getFile(selected.TorrentUrl, sfd.FileName);
-                Console.WriteLine(selected);
+                //Console.WriteLine(selected);
             }
         }
 
         private void toolStripButton1_Click(object sender, EventArgs e)
         {
             //string url = @"http://bt.ktxp.com/sort-1-1.html";
-            //if (toolStripTextBox1.Text != "")
-            //{
-            String url = @"http://bt.ktxp.com/search.php?keyword=" + toolStripTextBox1.Text;
+            if (toolStripTextBox1.Text == "")
+            {
+                return;
+            }
+            String url = @"http://share.dmhy.org/topics/list?keyword=" + toolStripTextBox1.Text;
             // }
             kind = "all";
             itemList = parserHtml(getHtml(url));
@@ -257,7 +305,7 @@ namespace Animation
 
         private void toolStripComboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {//http://bt.ktxp.com/search.php?keyword=%E6%B8%B8%E6%88%8F%E7%8E%8B
-            String url = @"http://bt.ktxp.com" + xinFan[toolStripComboBox2.Items[toolStripComboBox2.SelectedIndex].ToString()];
+            String url = @"http://share.dmhy.org/topics/list?keyword=" + xinFan[toolStripComboBox2.Items[toolStripComboBox2.SelectedIndex].ToString()];
             kind = "all";
             itemList = parserHtml(getHtml(url));
             //this.Text = itemList.Count.ToString();
@@ -288,15 +336,15 @@ namespace Animation
                 getFile(selected.TorrentUrl, EXEPath + "/torrent/" + selected.TorrentName);
                 System.Diagnostics.Process.Start(EXEPath + "/torrent/" + selected.TorrentName);
                 //File.Delete(selected.TorrentName);
-                Console.WriteLine(selected);
+                //Console.WriteLine(selected);
             }
         }
 
         private String getDetailHtml(String url)
         {
             String html = getHtml(url);
-            Match m = Regex.Match(html, @"<div class=""intro container-style"">[\s\S]*?</div>");
-            return @"<link type=""text/css"" rel=""stylesheet"" href=""http://static.ktxp.com/bt/style/global.min.css"" />" + m.Value;
+            Match m = Regex.Match(html, @"(<div class=""topic-nfo box ui-corner-all"">[\s\S]*?)<div id=""play-asia"" class=""box ui-corner-all"">");
+            return @"<link href=""http://share.dmhy.org/min/g=css&v=10"" rel=""stylesheet"" type=""text/css"" />" + @"<div class=""topic-main"">"+m.Groups[1].ToString()+"</div>";
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -321,7 +369,7 @@ namespace Animation
                     }
                 });
                 new DetailWeb(getDetailHtml(selected.DetailUrl), selected.Title).Show();
-                Console.WriteLine(selected);
+                //Console.WriteLine(selected);
             }
         }
 
@@ -369,10 +417,16 @@ namespace Animation
                         return false;
                     }
                 });
-                Clipboard.SetText(selected.TorrentUrl);
+                Clipboard.SetText(selected.DetailUrl);
             }
         }
 
-        
+        private void toolStripTextBox1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                toolStripButton1_Click(null, null);
+            }
+        }
     }
 }
