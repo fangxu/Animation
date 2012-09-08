@@ -5,12 +5,22 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Animation", "Animation\Anim
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
 		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0807661C-2746-415D-8F3B-74C97E39CB5B}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{0807661C-2746-415D-8F3B-74C97E39CB5B}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{0807661C-2746-415D-8F3B-74C97E39CB5B}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{0807661C-2746-415D-8F3B-74C97E39CB5B}.Debug|x86.ActiveCfg = Debug|x86
 		{0807661C-2746-415D-8F3B-74C97E39CB5B}.Debug|x86.Build.0 = Debug|x86
+		{0807661C-2746-415D-8F3B-74C97E39CB5B}.Release|Any CPU.ActiveCfg = Release|x86
+		{0807661C-2746-415D-8F3B-74C97E39CB5B}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{0807661C-2746-415D-8F3B-74C97E39CB5B}.Release|Mixed Platforms.Build.0 = Release|x86
 		{0807661C-2746-415D-8F3B-74C97E39CB5B}.Release|x86.ActiveCfg = Release|x86
 		{0807661C-2746-415D-8F3B-74C97E39CB5B}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
