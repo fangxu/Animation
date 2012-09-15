@@ -44,7 +44,7 @@ namespace Animation
             }
             InitializeComponent();
             initKinds();
-            toolStripComboBox3.SelectedIndex = 0;
+            toolStripComboBox2.SelectedIndex = 0;
             ImageList imageList1 = new ImageList();
             imageList1.ImageSize = new Size(1, 25);
             listView1.SmallImageList = imageList1;
@@ -73,11 +73,22 @@ namespace Animation
             ToolStripMenuItem_MouseMove(week, null);
         }
 
+        void enableUI(bool b)
+        {
+            this.Enabled = b;
+            //this.menuStripName.Enabled = b;
+            //this.menuStripWeek.Enabled = b;
+        }
+
         private void initXinFan()
         {
             String xinFanString = getXinFanString();
-            foreach (ToolStripMenuItem menu in menuStripWeek.Items)
+            foreach (ToolStripItem menu in menuStripWeek.Items)
             {
+                if (!menu.Text.StartsWith("星期"))
+                {
+                    continue;
+                }
                 String week = menu.Text;
                 Dictionary<String, String> playbill = new Dictionary<String, String>();
                 String pattern = weekEng[week] + @"array[\s\S]*?,'([\s\S]*?)','([\s\S]*?)'";
@@ -86,7 +97,7 @@ namespace Animation
                 {
                     if (playbill.ContainsValue(m.Groups[2].ToString()))
                     {
-                        break;
+                        continue;
                     }
                     playbill.Add(m.Groups[1].ToString(), m.Groups[2].ToString());
                 }
@@ -111,9 +122,9 @@ namespace Animation
             kinds.Add("RAW", @"http://share.dmhy.org/topics/list/sort_id/7");
             foreach (KeyValuePair<String, String> x in kinds)
             {
-                toolStripComboBox3.Items.Add(x.Key);
+                toolStripComboBox2.Items.Add(x.Key);
             }
-        }            
+        }
 
         private void updateList()
         {
@@ -198,6 +209,8 @@ namespace Animation
             request.Timeout = 10 * 1000;
             request.Method = "GET";
             request.UserAgent = "Mozilla/4.0";
+            this.Cursor = Cursors.WaitCursor;
+            enableUI(false);
             Stream rs = request.GetResponse().GetResponseStream();
             byte[] buf = new byte[1024];
             int len = 0;
@@ -205,8 +218,11 @@ namespace Animation
             while ((len = rs.Read(buf, 0, 1024)) != 0)
             {
                 sb.Append(Encoding.UTF8.GetString(buf, 0, len));
+                Application.DoEvents();
             }
             rs.Close();
+            this.Cursor = Cursors.Default;
+            enableUI(true);
             return sb.ToString();
         }
 
@@ -262,7 +278,7 @@ namespace Animation
                 getFile(selected.TorrentUrl, sfd.FileName);
             }
         }
-       
+
         private void listView1_DoubleClick(object sender, EventArgs e)
         {
             ToolStripMenuItemOpen_Click(null, null);
@@ -286,7 +302,7 @@ namespace Animation
                 });
                 getFile(selected.TorrentUrl, EXEPath + "/torrent/" + selected.TorrentName);
                 System.Diagnostics.Process.Start(EXEPath + "/torrent/" + selected.TorrentName);
-                            }
+            }
         }
 
         private String getDetailHtml(String url)
@@ -317,9 +333,9 @@ namespace Animation
                         return false;
                     }
                 });
-                new DetailWeb(getDetailHtml(selected.DetailUrl), selected.Title).Show();               
+                new DetailWeb(getDetailHtml(selected.DetailUrl), selected.Title).Show();
             }
-        }       
+        }
 
         private void ToolStripMenuItemTitleCopy_Click(object sender, EventArgs e)
         {
@@ -359,7 +375,7 @@ namespace Animation
                 });
                 Clipboard.SetText(selected.DetailUrl);
             }
-        }       
+        }
 
         private void ToolStripMenuItem_MouseMove(object sender, MouseEventArgs e)
         {
@@ -369,7 +385,8 @@ namespace Animation
                 return;
             }
             ToolStripMenuItem MenuItem;
-            menuStripName.Items.Clear();           
+            menuStripName.Items.Clear();
+            int length = 0;
             foreach (KeyValuePair<String, String> k in bill[week])
             {
                 MenuItem = new ToolStripMenuItem();
@@ -377,8 +394,11 @@ namespace Animation
                 MenuItem.Text = k.Key;
                 MenuItem.Click += new EventHandler(SubItem_MouseDown);
                 menuStripName.Items.Add(MenuItem);
+                length += k.Key.Length;
             }
-            List<String> ss = weekEng.Keys.ToList<String>();          
+            menuStripName.MinimumSize = new System.Drawing.Size(0, (length / 60) * 23);
+            
+            List<String> ss = weekEng.Keys.ToList<String>();
             menuStripWeek.Items[ss.IndexOf(week)].BackColor = Color.Blue;
             if (currentWeek != null)
             {
@@ -391,35 +411,35 @@ namespace Animation
         {
             String url = @"http://share.dmhy.org/topics/list?keyword=" + bill[currentWeek][sender.ToString()];
             kind = "all";
-            itemList = parserHtml(getHtml(url));           
+            itemList = parserHtml(getHtml(url));
             updateList();
         }
 
-        private void toolStripComboBox3_SelectedIndexChanged(object sender, EventArgs e)
+        private void toolStripComboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
-            kind = toolStripComboBox3.Items[toolStripComboBox3.SelectedIndex].ToString();
+            kind = toolStripComboBox2.Items[toolStripComboBox2.SelectedIndex].ToString();
             String url = kinds[kind];
             itemList = parserHtml(getHtml(url));
             updateList();
         }
 
-        private void toolStripButton1_Click(object sender, EventArgs e)
-        {           
+        private void toolStripMenuItem9_Click(object sender, EventArgs e)
+        {
             if (toolStripTextBox1.Text == "")
             {
                 return;
             }
-            String url = @"http://share.dmhy.org/topics/list?keyword=" + toolStripTextBox1.Text;           
+            String url = @"http://share.dmhy.org/topics/list?keyword=" + toolStripTextBox1.Text;
             kind = "all";
-            itemList = parserHtml(getHtml(url));           
-            updateList();          
+            itemList = parserHtml(getHtml(url));
+            updateList();
         }
 
         private void toolStripTextBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)Keys.Enter)
             {
-                toolStripButton1_Click(null, null);
+                toolStripMenuItem9_Click(null, null);
             }
         }
     }
