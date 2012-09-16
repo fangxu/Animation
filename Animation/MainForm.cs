@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Net;
 using System.IO;
-using System.Xml;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace Animation
 {
@@ -21,13 +19,13 @@ namespace Animation
         private String kind = null;
         private String EXEPath = null;
         String currentWeek = null;
-
+        ListViewItem[] listCache = null;
         Dictionary<String, String> weekEng = null;
 
         List<String> subitem = new List<String>();
-
         public MainForm()
         {
+            listCache = new ListViewItem[100];
             bill = new Dictionary<String, Dictionary<String, String>>();
             weekEng = new Dictionary<String, String>();
             weekEng.Add("星期一", "mon");
@@ -54,8 +52,7 @@ namespace Animation
 
         private void initWeek()
         {
-            DayOfWeek dw = DateTime.Now.DayOfWeek;
-            Console.WriteLine(dw.ToString());
+            DayOfWeek dw = DateTime.Now.DayOfWeek;            
             String w = dw.ToString().Substring(0, 3).ToLower();
             String week = null;
             foreach (KeyValuePair<String, String> kv in weekEng)
@@ -70,14 +67,16 @@ namespace Animation
             {
                 return;
             }
+            menuStripWeek.Items[weekEng.Keys.ToList<String>().IndexOf(week)].ForeColor = Color.OrangeRed;
             ToolStripMenuItem_MouseMove(week, null);
         }
 
         void enableUI(bool b)
         {
-            this.Enabled = b;
-            //this.menuStripName.Enabled = b;
-            //this.menuStripWeek.Enabled = b;
+            //this.Enabled = b;
+            this.menuStripName.Enabled = b;
+            this.menuStripWeek.Enabled = b;
+            this.listView1.Enabled = b;
         }
 
         private void initXinFan()
@@ -130,6 +129,7 @@ namespace Animation
         {
             listView1.Items.Clear();
             ListViewItem lv;
+            listView1.BeginUpdate();
             foreach (DMItem item in itemList)
             {
                 lv = new ListViewItem(new string[] { item.Date,
@@ -144,6 +144,7 @@ namespace Animation
             listView1.Columns[0].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
             listView1.Columns[1].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
             listView1.Columns[4].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+            listView1.EndUpdate();
             int width = 0;
             for (int i = 0; i < listView1.Columns.Count; i++)
             {
@@ -209,21 +210,51 @@ namespace Animation
             request.Timeout = 10 * 1000;
             request.Method = "GET";
             request.UserAgent = "Mozilla/4.0";
-            this.Cursor = Cursors.WaitCursor;
-            enableUI(false);
-            Stream rs = request.GetResponse().GetResponseStream();
-            byte[] buf = new byte[1024];
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new MethodInvoker(() =>
+                            {
+                                this.Cursor = Cursors.WaitCursor;
+                                enableUI(false);
+                            }));
+            }
+            else
+            {
+                this.Cursor = Cursors.WaitCursor;
+                enableUI(false);
+            }
+
+            String temp = null;
+            using (Stream rs = request.GetResponse().GetResponseStream())
+            {
+                using (StreamReader sr = new StreamReader(rs, Encoding.UTF8))
+                {
+                    temp = sr.ReadToEnd();
+                }
+            }
+            /*byte[] buf = new byte[1024];
             int len = 0;
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();            
             while ((len = rs.Read(buf, 0, 1024)) != 0)
             {
                 sb.Append(Encoding.UTF8.GetString(buf, 0, len));
+
                 Application.DoEvents();
+            }*/
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new MethodInvoker(() =>
+                {
+                    this.Cursor = Cursors.Default;
+                    enableUI(true);
+                }));
             }
-            rs.Close();
-            this.Cursor = Cursors.Default;
-            enableUI(true);
-            return sb.ToString();
+            else
+            {
+                this.Cursor = Cursors.Default;
+                enableUI(true);
+            }
+            return temp;
         }
 
         private void getFile(String fileUrl, String path)
@@ -305,12 +336,7 @@ namespace Animation
             }
         }
 
-        private String getDetailHtml(String url)
-        {
-            String html = getHtml(url);
-            Match m = Regex.Match(html, @"(<div class=""topic-nfo box ui-corner-all"">[\s\S]*?)<div id=""play-asia"" class=""box ui-corner-all"">");
-            return @"<link href=""http://share.dmhy.org/min/g=css&v=10"" rel=""stylesheet"" type=""text/css"" />" + @"<div class=""topic-main"">" + m.Groups[1].ToString() + "</div>";
-        }
+
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -333,7 +359,9 @@ namespace Animation
                         return false;
                     }
                 });
-                new DetailWeb(getDetailHtml(selected.DetailUrl), selected.Title).Show();
+
+                new DetailWeb(selected.DetailUrl, selected.Title).Show();
+
             }
         }
 
@@ -397,7 +425,7 @@ namespace Animation
                 length += k.Key.Length;
             }
             menuStripName.MinimumSize = new System.Drawing.Size(0, (length / 60) * 23);
-            
+
             List<String> ss = weekEng.Keys.ToList<String>();
             menuStripWeek.Items[ss.IndexOf(week)].BackColor = Color.Blue;
             if (currentWeek != null)
@@ -405,22 +433,21 @@ namespace Animation
                 menuStripWeek.Items[ss.IndexOf(currentWeek)].BackColor = Color.Silver;
             }
             currentWeek = week;
+
         }
 
         private void SubItem_MouseDown(object sender, EventArgs e)
         {
             String url = @"http://share.dmhy.org/topics/list?keyword=" + bill[currentWeek][sender.ToString()];
             kind = "all";
-            itemList = parserHtml(getHtml(url));
-            updateList();
+            updateView(url);
         }
 
         private void toolStripComboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
             kind = toolStripComboBox2.Items[toolStripComboBox2.SelectedIndex].ToString();
             String url = kinds[kind];
-            itemList = parserHtml(getHtml(url));
-            updateList();
+            updateView(url);
         }
 
         private void toolStripMenuItem9_Click(object sender, EventArgs e)
@@ -431,8 +458,7 @@ namespace Animation
             }
             String url = @"http://share.dmhy.org/topics/list?keyword=" + toolStripTextBox1.Text;
             kind = "all";
-            itemList = parserHtml(getHtml(url));
-            updateList();
+            updateView(url);
         }
 
         private void toolStripTextBox1_KeyPress(object sender, KeyPressEventArgs e)
@@ -441,6 +467,21 @@ namespace Animation
             {
                 toolStripMenuItem9_Click(null, null);
             }
+        }
+
+        private void updateView(String url)
+        {
+            Thread t = new Thread(() =>
+            {
+                itemList = parserHtml(getHtml(url));
+                while (!this.IsHandleCreated) ;
+                this.BeginInvoke(new MethodInvoker(() =>
+                {
+                    updateList();
+                }));
+            });
+            t.IsBackground = true;
+            t.Start();
         }
     }
 }

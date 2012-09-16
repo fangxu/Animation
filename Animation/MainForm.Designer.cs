@@ -123,7 +123,7 @@
             // toolStripContainer1.ContentPanel
             // 
             this.toolStripContainer1.ContentPanel.Controls.Add(this.listView1);
-            this.toolStripContainer1.ContentPanel.Size = new System.Drawing.Size(909, 454);
+            this.toolStripContainer1.ContentPanel.Size = new System.Drawing.Size(909, 473);
             this.toolStripContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.toolStripContainer1.LeftToolStripPanelVisible = false;
             this.toolStripContainer1.Location = new System.Drawing.Point(0, 0);
@@ -148,13 +148,14 @@
             this.listView_kind,
             this.listView_team});
             this.listView1.ContextMenuStrip = this.contextMenuStrip1;
+            this.listView1.Cursor = System.Windows.Forms.Cursors.Default;
             this.listView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.listView1.FullRowSelect = true;
             this.listView1.GridLines = true;
             this.listView1.Location = new System.Drawing.Point(0, 0);
             this.listView1.Name = "listView1";
             this.listView1.ShowItemToolTips = true;
-            this.listView1.Size = new System.Drawing.Size(909, 454);
+            this.listView1.Size = new System.Drawing.Size(909, 473);
             this.listView1.TabIndex = 0;
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
@@ -283,9 +284,8 @@
             this.menuStripName.Dock = System.Windows.Forms.DockStyle.None;
             this.menuStripName.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.Flow;
             this.menuStripName.Location = new System.Drawing.Point(0, 29);
-            this.menuStripName.MinimumSize = new System.Drawing.Size(0, 0);
             this.menuStripName.Name = "menuStripName";
-            this.menuStripName.Size = new System.Drawing.Size(909, 23);
+            this.menuStripName.Size = new System.Drawing.Size(909, 4);
             this.menuStripName.TabIndex = 1;
             this.menuStripName.Text = "menuStrip1";
             // 
