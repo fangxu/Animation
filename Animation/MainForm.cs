@@ -2,96 +2,88 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
-using System.Net;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Animation.Utils;
 
 namespace Animation
 {
     public partial class MainForm : Form
     {
+        //列表项目
         private List<DMItem> itemList = null;
-        private Dictionary<String, String> kinds = null;
-        private Dictionary<String, Dictionary<String, String>> bill = null;
-        private String kind = null;
+        //程序目录
         private String EXEPath = null;
-        String currentWeek = null;
-        ListViewItem[] listCache = null;
-        Dictionary<String, String> weekEng = null;
-
-        List<String> subitem = new List<String>();
+        //星期-新番-网址
+        private Dictionary<String, Dictionary<String, String>> bill = null;
+        //当前选择的星期
+        private String currentWeek = null;
+        //当前选择的新番
+        private String currentXinFan = null;
+        //所有星期
+        List<String> allWeek = null;
+        //资源类别
+        Dictionary<String, String> kinds = null;
         public MainForm()
         {
-            listCache = new ListViewItem[100];
-            bill = new Dictionary<String, Dictionary<String, String>>();
-            weekEng = new Dictionary<String, String>();
-            weekEng.Add("星期一", "mon");
-            weekEng.Add("星期二", "tue");
-            weekEng.Add("星期三", "wed");
-            weekEng.Add("星期四", "thu");
-            weekEng.Add("星期五", "fri");
-            weekEng.Add("星期六", "sat");
-            weekEng.Add("星期日", "sun");
             EXEPath = System.Environment.CurrentDirectory;
             if (!Directory.Exists(EXEPath + "/torrent"))
             {
                 Directory.CreateDirectory(EXEPath + "/torrent");
             }
             InitializeComponent();
-            initKinds();
-            toolStripComboBox2.SelectedIndex = 0;
+            //窗口非使能
+            EnabledUI(false);
+            //资源类别初始化
+            kinds = new Dictionary<String, String>();
+            //所有动画全集漫画音乐RAW
+            kinds.Add("所有", "");
+            kinds.Add("动画", "sort_id:2");
+            kinds.Add("全集", "sort_id:31");
+            kinds.Add("漫画", "sort_id:3");
+            kinds.Add("音乐", "sort_id:4");
+            kinds.Add("RAW", "sort_id:7");
+            //所有星期初始化
+            allWeek = new List<String>();
+            allWeek.AddRange(new String[] { "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日" });
+            //今天的星期
+            DayOfWeek dw = DateTime.Now.DayOfWeek;
+            String w = dw.ToString().Substring(0, 3).ToLower();
+            currentWeek = TextUtils.engToWeek(w);
+            menuStripWeek.Items[allWeek.IndexOf(currentWeek)].ForeColor = Color.OrangeRed;
+            //增加ListView行距
             ImageList imageList1 = new ImageList();
             imageList1.ImageSize = new Size(1, 25);
             listView1.SmallImageList = imageList1;
-            initXinFan();
-            initWeek();
+            //初始化
+            Thread t = new Thread(initIndex);
+            t.IsBackground = true;
+            t.Start();
         }
 
-        private void initWeek()
+        /************************************************************************/
+        /* 首页初始化
+         * http://share.dmhy.org/
+         * 提取新番和最新item
+        /************************************************************************/
+        private void initIndex()
         {
-            DayOfWeek dw = DateTime.Now.DayOfWeek;            
-            String w = dw.ToString().Substring(0, 3).ToLower();
-            String week = null;
-            foreach (KeyValuePair<String, String> kv in weekEng)
-            {
-                if (kv.Value.Equals(w))
-                {
-                    week = kv.Key;
-                    break;
-                }
-            }
-            if (week == null)
+            String html = NetUtils.getHtml(@"http://share.dmhy.org/");
+            html = NetUtils.formateHtml(html);
+            if (html == null)
             {
                 return;
             }
-            menuStripWeek.Items[weekEng.Keys.ToList<String>().IndexOf(week)].ForeColor = Color.OrangeRed;
-            ToolStripMenuItem_MouseMove(week, null);
-        }
-
-        void enableUI(bool b)
-        {
-            //this.Enabled = b;
-            this.menuStripName.Enabled = b;
-            this.menuStripWeek.Enabled = b;
-            this.listView1.Enabled = b;
-        }
-
-        private void initXinFan()
-        {
-            String xinFanString = getXinFanString();
-            foreach (ToolStripItem menu in menuStripWeek.Items)
+            String pattern = null;
+            MatchCollection matches = null;
+            bill = new Dictionary<String, Dictionary<String, String>>();
+            foreach (String week in allWeek)
             {
-                if (!menu.Text.StartsWith("星期"))
-                {
-                    continue;
-                }
-                String week = menu.Text;
                 Dictionary<String, String> playbill = new Dictionary<String, String>();
-                String pattern = weekEng[week] + @"array[\s\S]*?,'([\s\S]*?)','([\s\S]*?)'";
-                MatchCollection matches = Regex.Matches(xinFanString, pattern);
+                pattern = TextUtils.weekToEng(week) + @"array\.push[\s\S]*?,'([\s\S]*?)','([\s\S]*?)'";
+                matches = Regex.Matches(html, pattern, RegexOptions.Compiled);
                 foreach (Match m in matches)
                 {
                     if (playbill.ContainsValue(m.Groups[2].ToString()))
@@ -102,34 +94,94 @@ namespace Animation
                 }
                 bill.Add(week, playbill);
             }
-        }
-
-        private String getXinFanString()
-        {
-            String temp = getHtml(@"http://share.dmhy.org/cms/page/name/programme.html");
-            return Regex.Match(temp, @"(//星期日[\s\S]*?)</script>").Groups[1].ToString();
-        }
-
-        private void initKinds()
-        {
-            kinds = new Dictionary<String, String>();
-            kinds.Add("all", @"http://share.dmhy.org/");
-            kinds.Add("动画", @"http://share.dmhy.org/topics/list/sort_id/2");
-            kinds.Add("季度全集", @"http://share.dmhy.org/topics/list/sort_id/31");
-            kinds.Add("漫画", @"http://share.dmhy.org/topics/list/sort_id/3");
-            kinds.Add("音乐", @"http://share.dmhy.org/topics/list/sort_id/4");
-            kinds.Add("RAW", @"http://share.dmhy.org/topics/list/sort_id/7");
-            foreach (KeyValuePair<String, String> x in kinds)
+            //获取项目列表
+            String dateP = @"<span style=""display: none;"">([\d|/]* \d\d:\d\d)<";
+            String kindP = @"[\s\S]*?<font color=\S*?>(\S*?)<";
+            String titleP = @"[\s\S]*?<td class=""title"">([\s\S]*?)</td>";
+            String torrentP = @"[\s\S]*?href=""([\S]*?)""";
+            String sizeP = @"[\s\S]*?align=""center"">([\d|\.]*.B)</td>";
+            String pubisherP = @"[\s\S]*?user_id/\d*?"">([\S]*?)</a>";
+            pattern = dateP + kindP + titleP + torrentP + sizeP + pubisherP;
+            itemList = new List<DMItem>();
+            DMItem item = null;
+            Regex rgx = new Regex(pattern, RegexOptions.Compiled);
+            Regex rgx2 = new Regex(@"href=""([\s\S]*?)""");
+            Regex rgx1 = new Regex(@"_blank"" >([\s\S]*)");
+            matches = rgx.Matches(html);
+            foreach (Match match in matches)
             {
-                toolStripComboBox2.Items.Add(x.Key);
+                item = new DMItem();
+                item.Date = match.Groups[1].ToString();
+                item.kind = match.Groups[2].ToString();
+                item.TorrentUrl = match.Groups[4].ToString();
+                //item.Title = NetUtils.striphtml(match.Groups[3].ToString());
+                item.size = match.Groups[5].ToString();
+                item.pulisher = NetUtils.stripHtml(match.Groups[6].ToString());
+                String[] s = Regex.Split(match.Groups[3].ToString(), @"</a>");
+                if (s.Length == 2)
+                {
+                    String s1 = s[0];
+                    item.Title = NetUtils.stripHtml(rgx1.Match(s1).Groups[1].ToString());
+                    item.Team = null;
+                    item.DetailUrl = rgx2.Match(s1).Groups[1].ToString();
+                }
+                else
+                {
+                    String s1 = s[0];
+                    item.Team = s1.Substring(s1.LastIndexOf('>') + 1, s1.Length - s1.LastIndexOf('>') - 1);
+                    item.TeamID = s1.Substring(s1.LastIndexOf('/') + 1, s1.LastIndexOf('"') - s1.LastIndexOf('/') - 1);
+                    s1 = s[1];
+                    item.Title = NetUtils.stripHtml(rgx1.Match(s1).Groups[1].ToString());
+                    item.DetailUrl = rgx2.Match(s1).Groups[1].ToString();
+                }
+                itemList.Add(item);
             }
+            this.Invoke(new MethodInvoker(() =>
+            {
+                //第二菜单加入详细新番名称
+                ToolStripMenuItem MenuItem;
+                menuStripName.Items.Clear();
+                int length = 0;
+                foreach (KeyValuePair<String, String> k in bill[currentWeek])
+                {
+                    MenuItem = new ToolStripMenuItem();
+                    MenuItem.Size = new System.Drawing.Size(k.Key.Length * 20, 21);
+                    MenuItem.Text = k.Key;
+                    MenuItem.Click += new EventHandler(XinFanName_MouseDown);
+                    menuStripName.Items.Add(MenuItem);
+                    length += k.Key.Length;
+                }
+                menuStripName.MinimumSize = new System.Drawing.Size(0, (length / 60) * 23);
+                menuStripWeek.Items[allWeek.IndexOf(currentWeek)].BackColor = Color.Blue;
+                //类别下拉框
+                toolStripComboBox2.SelectedIndex = 0;
+                //更新ListView
+                UpdateListView();
+            }));
         }
-
-        private void updateList()
+        /************************************************************************/
+        /* 根据itemList的数据，更新ListView。                                   */
+        /************************************************************************/
+        private void UpdateListView()
         {
-            listView1.Items.Clear();
+            if (itemList == null)
+            {
+                return;
+            }
             ListViewItem lv;
-            listView1.BeginUpdate();
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new MethodInvoker(() =>
+                {
+                    listView1.Items.Clear();
+                    listView1.BeginUpdate();
+                }));
+            }
+            else
+            {
+                listView1.Items.Clear();
+                listView1.BeginUpdate();
+            }
             foreach (DMItem item in itemList)
             {
                 lv = new ListViewItem(new string[] { item.Date,
@@ -138,29 +190,69 @@ namespace Animation
                 {
                     lv.BackColor = Color.FromArgb(0xccddff);
                 }
-                //lv.Font=
-                listView1.Items.Add(lv);
+                if (this.InvokeRequired)
+                {
+                    this.Invoke(new MethodInvoker(() =>
+                    {
+                        listView1.Items.Add(lv);
+                    }));
+                }
+                else
+                {
+                    listView1.Items.Add(lv);
+                }
             }
-            listView1.Columns[0].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
-            listView1.Columns[1].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
-            listView1.Columns[4].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
-            listView1.EndUpdate();
-            int width = 0;
-            for (int i = 0; i < listView1.Columns.Count; i++)
+            if (this.InvokeRequired)
             {
-                width += listView1.Columns[i].Width;
+                this.Invoke(new MethodInvoker(() =>
+                {
+                    listView1.Columns[0].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+                    listView1.Columns[1].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+                    listView1.Columns[4].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+                    listView1.EndUpdate();
+                    int width = 0;
+                    for (int i = 0; i < listView1.Columns.Count; i++)
+                    {
+                        width += listView1.Columns[i].Width;
+                    }
+                    this.Width = width + 40;                    
+                }));
             }
-            this.Width = width + 40;
-        }
+            else
+            {
+                listView1.Columns[0].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+                listView1.Columns[1].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+                listView1.Columns[4].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+                listView1.EndUpdate();
+                int width = 0;
+                for (int i = 0; i < listView1.Columns.Count; i++)
+                {
+                    width += listView1.Columns[i].Width;
+                }
+                this.Width = width + 40;                
+            }
+            EnabledUI(true);
 
-        private List<DMItem> parserHtml(String html)
+        }
+        /************************************************************************/
+        /* 根据url获取新番List。                                                */
+        /************************************************************************/
+        private List<DMItem> getDMItemList(String url)
         {
+            EnabledUI(false);
+            String html = NetUtils.getHtml(url);
+            html = NetUtils.formateHtml(html);
+            if (html == null)
+            {
+                return null;
+            }
             String dateP = @"<span style=""display: none;"">([\d|/]* \d\d:\d\d)<";
             String kindP = @"[\s\S]*?<font color=\S*?>(\S*?)<";
             String titleP = @"[\s\S]*?<td class=""title"">([\s\S]*?)</td>";
             String torrentP = @"[\s\S]*?href=""([\S]*?)""";
             String sizeP = @"[\s\S]*?align=""center"">([\d|\.]*.B)</td>";
-            String pattern = dateP + kindP + titleP + torrentP + sizeP;
+            String pubisherP = @"[\s\S]*?user_id/\d*?"">([\S]*?)</a>";
+            String pattern = dateP + kindP + titleP + torrentP + sizeP + pubisherP;
             List<DMItem> list = new List<DMItem>();
             DMItem item = null;
             Regex rgx = new Regex(pattern);
@@ -173,13 +265,14 @@ namespace Animation
                 item.Date = match.Groups[1].ToString();
                 item.kind = match.Groups[2].ToString();
                 item.TorrentUrl = match.Groups[4].ToString();
-                item.Title = striphtml(match.Groups[3].ToString());
+                item.Title = NetUtils.stripHtml(match.Groups[3].ToString());
                 item.size = match.Groups[5].ToString();
+                item.pulisher = NetUtils.stripHtml(match.Groups[6].ToString());
                 String[] s = Regex.Split(match.Groups[3].ToString(), @"</a>");
                 if (s.Length == 2)
                 {
                     String s1 = s[0];
-                    item.Title = striphtml(rgx1.Match(s1).Groups[1].ToString());
+                    item.Title = NetUtils.stripHtml(rgx1.Match(s1).Groups[1].ToString());
                     item.Team = null;
                     item.DetailUrl = rgx2.Match(s1).Groups[1].ToString();
                 }
@@ -187,101 +280,57 @@ namespace Animation
                 {
                     String s1 = s[0];
                     item.Team = s1.Substring(s1.LastIndexOf('>') + 1, s1.Length - s1.LastIndexOf('>') - 1);
+                    item.TeamID = s1.Substring(s1.LastIndexOf('/') + 1, s1.LastIndexOf('"') - s1.LastIndexOf('/') - 1);
                     s1 = s[1];
-                    item.Title = striphtml(rgx1.Match(s1).Groups[1].ToString());
+                    item.Title = NetUtils.stripHtml(rgx1.Match(s1).Groups[1].ToString());
                     item.DetailUrl = rgx2.Match(s1).Groups[1].ToString();
                 }
                 list.Add(item);
             }
+
             return list;
         }
-
-        private string striphtml(string strhtml)
+        /************************************************************************/
+        /* 获取item并更新ListView，多线程。                                     */
+        /************************************************************************/
+        private void GetUpdate(String url)
         {
-            string stroutput = strhtml;
-            Regex regex = new Regex(@"<[^>]+>|</[^>]+>|amp;");
-            stroutput = regex.Replace(stroutput, "");
-            return stroutput;
+            Thread t = new Thread(() =>
+            {
+                itemList = getDMItemList(url);
+                UpdateListView();
+            });
+            t.IsBackground = true;
+            t.Start();
         }
-
-        private String getHtml(String url)
+        /************************************************************************/
+        /* 窗口使能                                                             */
+        /************************************************************************/
+        private void EnabledUI(bool b)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.Timeout = 10 * 1000;
-            request.Method = "GET";
-            request.UserAgent = "Mozilla/4.0";
-            if (this.InvokeRequired)
-            {
-                this.Invoke(new MethodInvoker(() =>
-                            {
-                                this.Cursor = Cursors.WaitCursor;
-                                enableUI(false);
-                            }));
-            }
-            else
-            {
-                this.Cursor = Cursors.WaitCursor;
-                enableUI(false);
-            }
-
-            String temp = null;
-            using (Stream rs = request.GetResponse().GetResponseStream())
-            {
-                using (StreamReader sr = new StreamReader(rs, Encoding.UTF8))
-                {
-                    temp = sr.ReadToEnd();
-                }
-            }
-            /*byte[] buf = new byte[1024];
-            int len = 0;
-            StringBuilder sb = new StringBuilder();            
-            while ((len = rs.Read(buf, 0, 1024)) != 0)
-            {
-                sb.Append(Encoding.UTF8.GetString(buf, 0, len));
-
-                Application.DoEvents();
-            }*/
             if (this.InvokeRequired)
             {
                 this.Invoke(new MethodInvoker(() =>
                 {
-                    this.Cursor = Cursors.Default;
-                    enableUI(true);
+                    this.menuStripName.Enabled = b;
+                    this.menuStripWeek.Enabled = b;
+                    this.listView1.Enabled = b;
+                    this.UseWaitCursor = !b;
+                    this.Refresh();
                 }));
             }
             else
             {
-                this.Cursor = Cursors.Default;
-                enableUI(true);
-            }
-            return temp;
+                this.menuStripName.Enabled = b;
+                this.menuStripWeek.Enabled = b;
+                this.listView1.Enabled = b;
+                this.UseWaitCursor = !b;
+                this.Refresh();
+            }            
         }
-
-        private void getFile(String fileUrl, String path)
-        {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(fileUrl);
-            CookieContainer cc = new CookieContainer();
-            cc.Add(new Cookie("rsspass", "adf651b88f87892db88b62cd60", null, "share.dmhy.org"));
-            cc.Add(new Cookie("uid", "120145", null, "share.dmhy.org"));
-            request.Timeout = 30 * 1000;
-            request.Method = "GET";
-            request.CookieContainer = cc;
-            HttpWebResponse respond = (HttpWebResponse)request.GetResponse();
-
-            byte[] buf = new byte[65535];
-            int len = 0;
-            using (Stream fs = new FileStream(path, FileMode.Create, FileAccess.Write),
-                rs = respond.GetResponseStream())
-            {
-                while ((len = rs.Read(buf, 0, 65535)) != 0)
-                {
-                    fs.Write(buf, 0, len);
-                }
-                fs.Close();
-                rs.Close();
-            }
-        }
-
+        /************************************************************************/
+        /* 右键选择下载                                                         */
+        /************************************************************************/
         private void ToolStripMenuItemDownload_Click(object sender, EventArgs e)
         {
             foreach (ListViewItem item in listView1.SelectedItems)
@@ -306,15 +355,20 @@ namespace Animation
                 {
                     return;
                 }
-                getFile(selected.TorrentUrl, sfd.FileName);
+                NetUtils.getFile(selected.TorrentUrl, sfd.FileName);
+                MessageBox.Show(this, sfd.FileName + "\n保存完成！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-        }
-
+        }        
+        /************************************************************************/
+        /* 双击鼠标，调用右键打开函数。                                         */
+        /************************************************************************/
         private void listView1_DoubleClick(object sender, EventArgs e)
         {
             ToolStripMenuItemOpen_Click(null, null);
         }
-
+        /************************************************************************/
+        /* 右键选择打开                                                         */
+        /************************************************************************/
         private void ToolStripMenuItemOpen_Click(object sender, EventArgs e)
         {
             foreach (ListViewItem item in listView1.SelectedItems)
@@ -331,19 +385,47 @@ namespace Animation
                         return false;
                     }
                 });
-                getFile(selected.TorrentUrl, EXEPath + "/torrent/" + selected.TorrentName);
+                NetUtils.getFile(selected.TorrentUrl, EXEPath + "/torrent/" + selected.TorrentName);
                 System.Diagnostics.Process.Start(EXEPath + "/torrent/" + selected.TorrentName);
             }
         }
-
-
-
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        /************************************************************************/
+        /* 鼠标右键，搜索当前选中的新番组+当前新番或搜索词                      */
+        /************************************************************************/
+        private void ToolStripMenuItemTeam_Click(object sender, EventArgs e)
         {
-            Directory.Delete(EXEPath + "/torrent", true);
+            if (currentXinFan == null)
+            {
+                MessageBox.Show("缺少关键字。");
+                return;
+            }
+            ListViewItem item = listView1.SelectedItems[0];
+            String s = item.SubItems[1].Text;
+            DMItem selected = itemList.Find(it =>
+            {
+                if (it.Title.Equals(s))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            });
+            if (selected.TeamID == null)
+            {
+                MessageBox.Show("缺少字幕组id。");
+                return;
+            }
+            String url = @"http://share.dmhy.org/topics/list?keyword="
+                + currentXinFan + "+team_id:" + selected.TeamID;
+            GetUpdate(url);
         }
 
-        private void ToolStripMenuItemDetail_Click(object sender, EventArgs e)
+        /************************************************************************/
+        /* 右键选择详细，打开新窗口，显示新番具体内容。                         */
+        /************************************************************************/
+        private void MouseMenuDetail_Click(object sender, EventArgs e)
         {
             foreach (ListViewItem item in listView1.SelectedItems)
             {
@@ -359,13 +441,13 @@ namespace Animation
                         return false;
                     }
                 });
-
                 new DetailWeb(selected.DetailUrl, selected.Title).Show();
-
             }
         }
-
-        private void ToolStripMenuItemTitleCopy_Click(object sender, EventArgs e)
+        /************************************************************************/
+        /* 右键-复制-标题                                                       */
+        /************************************************************************/
+        private void MouseMenuTitleCopy_Click(object sender, EventArgs e)
         {
             foreach (ListViewItem item in listView1.SelectedItems)
             {
@@ -384,8 +466,10 @@ namespace Animation
                 Clipboard.SetText(selected.Title);
             }
         }
-
-        private void ToolStripMenuItemtorrentCopy_Click(object sender, EventArgs e)
+        /************************************************************************/
+        /* 右键-复制-种子，复制种子下载页面地址。                               */
+        /************************************************************************/
+        private void MouseMenuTorrentCopy_Click(object sender, EventArgs e)
         {
             foreach (ListViewItem item in listView1.SelectedItems)
             {
@@ -405,8 +489,15 @@ namespace Animation
             }
         }
 
-        private void ToolStripMenuItem_MouseMove(object sender, MouseEventArgs e)
+        /************************************************************************/
+        /* 鼠标在星期菜单移动，第二菜单更新新番                                 */
+        /************************************************************************/
+        private void WeekMenu_MouseMove(object sender, MouseEventArgs e)
         {
+            if (bill == null)
+            {
+                return;
+            }
             String week = sender.ToString();
             if (week.Equals(currentWeek))
             {
@@ -420,68 +511,58 @@ namespace Animation
                 MenuItem = new ToolStripMenuItem();
                 MenuItem.Size = new System.Drawing.Size(k.Key.Length * 20, 21);
                 MenuItem.Text = k.Key;
-                MenuItem.Click += new EventHandler(SubItem_MouseDown);
+                MenuItem.Click += new EventHandler(XinFanName_MouseDown);
                 menuStripName.Items.Add(MenuItem);
                 length += k.Key.Length;
             }
             menuStripName.MinimumSize = new System.Drawing.Size(0, (length / 60) * 23);
 
-            List<String> ss = weekEng.Keys.ToList<String>();
-            menuStripWeek.Items[ss.IndexOf(week)].BackColor = Color.Blue;
+
+            menuStripWeek.Items[allWeek.IndexOf(week)].BackColor = Color.Blue;
             if (currentWeek != null)
             {
-                menuStripWeek.Items[ss.IndexOf(currentWeek)].BackColor = Color.Silver;
+                menuStripWeek.Items[allWeek.IndexOf(currentWeek)].BackColor = Color.Silver;
             }
             currentWeek = week;
 
         }
 
-        private void SubItem_MouseDown(object sender, EventArgs e)
+        /************************************************************************/
+        /* 鼠标点击新番，获取新番List，更新ListView                             */
+        /************************************************************************/
+        private void XinFanName_MouseDown(object sender, EventArgs e)
         {
-            String url = @"http://share.dmhy.org/topics/list?keyword=" + bill[currentWeek][sender.ToString()];
-            kind = "all";
-            updateView(url);
+            currentXinFan = bill[currentWeek][sender.ToString()];
+            String url = @"http://share.dmhy.org/topics/list?keyword=" + currentXinFan;
+            GetUpdate(url);
         }
 
-        private void toolStripComboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        /************************************************************************/
+        /* 点击搜索按钮，根据combox的kind搜索，获取List并更新                   */
+        /************************************************************************/
+        private void searchButton_Click(object sender, EventArgs e)
         {
-            kind = toolStripComboBox2.Items[toolStripComboBox2.SelectedIndex].ToString();
-            String url = kinds[kind];
-            updateView(url);
+            currentXinFan = kinds[toolStripComboBox2.SelectedItem.ToString()]
+                + "+" + toolStripTextBox1.Text;
+            String url = @"http://share.dmhy.org/topics/list?keyword=" + currentXinFan;
+            GetUpdate(url);
         }
-
-        private void toolStripMenuItem9_Click(object sender, EventArgs e)
-        {
-            if (toolStripTextBox1.Text == "")
-            {
-                return;
-            }
-            String url = @"http://share.dmhy.org/topics/list?keyword=" + toolStripTextBox1.Text;
-            kind = "all";
-            updateView(url);
-        }
-
-        private void toolStripTextBox1_KeyPress(object sender, KeyPressEventArgs e)
+        /************************************************************************/
+        /* 在搜索框点击键盘的enter键，调用搜索按钮的响应。                      */
+        /************************************************************************/
+        private void searchTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)Keys.Enter)
             {
-                toolStripMenuItem9_Click(null, null);
+                searchButton_Click(null, null);
             }
         }
-
-        private void updateView(String url)
+        /************************************************************************/
+        /* 关闭主窗口时删除torrent文件夹。                                      */
+        /************************************************************************/
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Thread t = new Thread(() =>
-            {
-                itemList = parserHtml(getHtml(url));
-                while (!this.IsHandleCreated) ;
-                this.BeginInvoke(new MethodInvoker(() =>
-                {
-                    updateList();
-                }));
-            });
-            t.IsBackground = true;
-            t.Start();
+            Directory.Delete(EXEPath + "/torrent", true);
         }
     }
 }

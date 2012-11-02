@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.VisualBasic;
 
 namespace Animation
 {
     class DMItem
     {
         private DateTime date;
+        private String title;
+        public String size { get; set; }
+        public String pulisher { get; set; }
+        private String team;
+        private String teamID;        
+        public String kind { get; set; }
+        private String torrentUrl;
+        private String detailUrl;
+
+        public System.String TeamID
+        {
+            get { return teamID; }
+            set { teamID = value; }
+        }
         public String Date
         {
             get
@@ -37,17 +52,14 @@ namespace Animation
                 date = DateTime.Parse(value);
             }
         }
-        private String title;
 
-        public String size { get; set; }
-        private String team;
         public String Team
         {
             get
             {
                 if (team == null)
                 {
-                    return "个人";
+                    return pulisher;
                 }
                 else
                 {
@@ -56,9 +68,7 @@ namespace Animation
             }
             set { team = value; }
         }
-        public String kind { get; set; }
-        private String torrentUrl;
-        private String detailUrl;
+
         public System.String DetailUrl
         {
             get { return detailUrl; }
@@ -79,7 +89,10 @@ namespace Animation
         }
         public System.String Title
         {
-            get { return title; }
+            get
+            {
+                return title;
+            }
             set
             {
                 title = new Regex(@"\r|\n|\t").Replace(value, "");
