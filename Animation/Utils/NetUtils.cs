@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Net;
 using System.IO;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
+using System.Windows.Forms;
 
 namespace Animation.Utils
 {
@@ -14,10 +13,10 @@ namespace Animation.Utils
         public static String getHtml(String url)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.Timeout = 10 * 1000;
+            request.Timeout = 30 * 1000;
             request.Method = "GET";
             request.UserAgent = "Mozilla/4.0";
-
+            request.KeepAlive = true;
 
             String temp = null;
             try
@@ -32,7 +31,7 @@ namespace Animation.Utils
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine(ex);
+                MessageBox.Show(null,ex.ToString(),"无法采集数据，请稍后再试。");
             }
             finally
             {
@@ -54,7 +53,7 @@ namespace Animation.Utils
             string stroutput = html;
             Regex regex = new Regex(@"\t|\n|\r");
             stroutput = regex.Replace(stroutput, "");
-            return stroutput;        
+            return stroutput;
         }
 
         public static void getFile(String fileUrl, String path)

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Windows.Forms;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -189,6 +188,10 @@ namespace Animation
                 if (listView1.Items.Count % 2 == 0)
                 {
                     lv.BackColor = Color.FromArgb(0xccddff);
+                }
+                if (item.Date.StartsWith("今天"))
+                {
+                    lv.ForeColor = Color.Blue;
                 }
                 if (this.InvokeRequired)
                 {
