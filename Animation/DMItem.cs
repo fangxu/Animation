@@ -95,7 +95,7 @@ namespace Animation
             }
             set
             {
-                title = new Regex(@"\r|\n|\t").Replace(value, "");
+                title = new Regex(@"\r|\n|\t| ").Replace(value, "");
             }
         }
 
