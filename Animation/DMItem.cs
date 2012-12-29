@@ -7,120 +7,92 @@ using Microsoft.VisualBasic;
 
 namespace Animation
 {
-    class DMItem
+    public class DMItem
     {
         private DateTime date;
         private String title;
         public String size { get; set; }
         public String pulisher { get; set; }
         private String team;
-        private String teamID;        
+        private String teamID;
         public String kind { get; set; }
         private String torrentUrl;
         private String detailUrl;
 
-        public System.String TeamID
-        {
+        public System.String TeamID {
             get { return teamID; }
             set { teamID = value; }
         }
-        public String Date
-        {
-            get
-            {
+        public String Date {
+            get {
                 String dateS = null;
-                if (date.Date == DateTime.Today)
-                {
+                if (date.Date == DateTime.Today) {
                     dateS = "今天 " + date.ToShortTimeString();
-                }
-                else if (date.Date == DateTime.Today.AddDays(-1))
-                {
+                } else if (date.Date == DateTime.Today.AddDays(-1)) {
                     dateS = "昨天 " + date.ToShortTimeString();
-                }
-                else if (date.Year == DateTime.Today.Year)
-                {
+                } else if (date.Year == DateTime.Today.Year) {
                     dateS = date.Month + "/" + date.Day + " " + date.ToShortTimeString();
-                }
-                else
-                {
+                } else {
                     dateS = date.ToShortDateString() + " " + date.ToShortTimeString();
                 }
                 return dateS;
             }
-            set
-            {
+            set {
                 date = DateTime.Parse(value);
             }
         }
 
-        public String Team
-        {
-            get
-            {
-                if (team == null)
-                {
+        public String Team {
+            get {
+                if (team == null) {
                     return pulisher;
-                }
-                else
-                {
+                } else {
                     return team;
                 }
             }
             set { team = value; }
         }
 
-        public System.String DetailUrl
-        {
+        public System.String DetailUrl {
             get { return detailUrl; }
             set { detailUrl = @"http://share.dmhy.org" + value; }
         }
-        public String TorrentName
-        {
-            get
-            {
+        public String TorrentName {
+            get {
                 return torrentUrl.Substring(torrentUrl.LastIndexOf('/') + 1,
                     torrentUrl.Length - torrentUrl.LastIndexOf('/') - 1) + ".torrent";
             }
         }
-        public System.String TorrentUrl
-        {
+        public System.String TorrentUrl {
             get { return torrentUrl; }
             set { torrentUrl = @"http://share.dmhy.org" + value; }
         }
-        public System.String Title
-        {
-            get
-            {
+        public System.String Title {
+            get {
                 return title;
             }
-            set
-            {
+            set {
                 title = new Regex(@"\r|\n|\t| ").Replace(value, "");
             }
         }
 
-        public DMItem(String title)
-        {
+        public DMItem(String title) {
             this.title = title;
         }
 
-        public DMItem()
-        {
+        public DMItem() {
 
         }
 
-        public override Int32 GetHashCode()
-        {
+        public override Int32 GetHashCode() {
             return StringComparer.CurrentCulture.GetHashCode(this.title);
         }
 
-        public override System.String ToString()
-        {
+        public override System.String ToString() {
             return date.ToString() + " " + title + " " + size + " " + team + " " + torrentUrl;
         }
 
-        public override Boolean Equals(System.Object obj)
-        {
+        public override Boolean Equals(System.Object obj) {
             return String.Equals(((DMItem)obj).title, this.title);
         }
     }

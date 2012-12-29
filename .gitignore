@@ -1,3 +1,8 @@
 bin
 *.suo
 obj
+TestProjectKTXP
+TestResults
+*.exe
+*.vsmdi
+*.testsettings
