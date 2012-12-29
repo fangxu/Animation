@@ -89,7 +89,7 @@ namespace Animation
                     {
                         continue;
                     }
-                    playbill.Add(m.Groups[1].ToString(), m.Groups[2].ToString());
+                    playbill.Add(NetUtils.stripHtml(m.Groups[1].ToString()), m.Groups[2].ToString());
                 }
                 bill.Add(week, playbill);
             }
