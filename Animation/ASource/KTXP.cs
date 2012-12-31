@@ -10,12 +10,21 @@ namespace Animation.ASource
     class KTXP:IASource
     {
         const String BILL_URL = @"http://bt.ktxp.com/playbill.php";
+        const String HOME_URL = @"http://bt.ktxp.com";
         List<String> allWeek;
         Dictionary<Kind, String> kind2url;
 
         public KTXP() {
             allWeek = new List<String>();
             allWeek.AddRange(new String[] { "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日" });
+
+            kind2url = new Dictionary<Kind, String>();
+            kind2url.Add(Kind.ALL, "");
+            kind2url.Add(Kind.ANIMATION, "&sort_id=1");
+            kind2url.Add(Kind.COLLECTION, "&sort_id=28");
+            kind2url.Add(Kind.COMIC, "&sort_id=3");
+            kind2url.Add(Kind.MUSIC, "&sort_id=4");
+            kind2url.Add(Kind.RAW, "&sort_id=15");
         }
 
         public Dictionary<string, Dictionary<string, string>> getBill() {
@@ -24,7 +33,7 @@ namespace Animation.ASource
             if (html == null) {
                 return null;
             }
-            String pattern = null;
+
             MatchCollection matches = null;
             Dictionary<string, Dictionary<string, string>> bill;
             bill = new Dictionary<String, Dictionary<String, String>>();
@@ -41,19 +50,6 @@ namespace Animation.ASource
                 }
                 bill.Add(allWeek[i], playbill);
             }
-
-//             foreach (String week in allWeek) {
-//                 Dictionary<String, String> playbill = new Dictionary<String, String>();
-//                 pattern = TextUtils.weekToEng(week) + @"array\.push[\s\S]*?,'([\s\S]*?)','([\s\S]*?)'";
-//                 matches = Regex.Matches(html, pattern, RegexOptions.Compiled);
-//                 foreach (Match m in matches) {
-//                     if (playbill.ContainsValue(m.Groups[2].ToString())) {
-//                         continue;
-//                     }
-//                     playbill.Add(NetUtils.stripHtml(m.Groups[1].ToString()), m.Groups[2].ToString());
-//                 }
-//                 bill.Add(week, playbill);
-//             }
             return bill;
         }
 
@@ -64,16 +60,22 @@ namespace Animation.ASource
 
 
         public string getDetailHtml(string url) {
-             throw new NotImplementedException();
+            String html = Utils.NetUtils.getHtml(url);
+            String patten = @"(<div class=""intro container-style"">[\s\S]*?)<div class=""r money"">";
+            Match m = Regex.Match(html, patten);
+            return @"<link type=""text/css"" rel=""stylesheet"" href=""http://static.ktxp.com/bt/style/global.min.css"" />"
+            +m.Groups[1].ToString() ;
         }
 
         
         public List<DMItem> getDMItem(Kind kind, string keywords = null) {
-            String url = null;
+            String url = keywords==null?null:@"http://bt.ktxp.com/search.php?keyword="
+                + keywords + kind2url[kind] + "&field=title";
             return getDMItem(url);
         }
 
         //http://bt.ktxp.com/index-1.html
+		//http://bt.ktxp.com/search.php?keyword=%E6%84%BF%E6%AD%A4%E5%88%BB%E6%B0%B8%E6%81%92&sort=28
         private List<DMItem> getDMItem(string url=null) {
             url = url == null ? "http://bt.ktxp.com/index-1.html" : url;
             String html = NetUtils.getHtml(url);
@@ -82,15 +84,6 @@ namespace Animation.ASource
                 return null;
             }
 
-            /*
-             <tr>
-                        <td title="2012/12/29 21:04">今天 21:04</td>
-                        <td><a href="/sort-12-1.html">新番连载</a></td>                        <td class="ltext ttitle"><a href="/down/1356786257/bb5ae2a63a56d9f326c01ef82a9f1a486723c7e5.torrent" class="quick-down cmbg"></a><a href="/html/2012/1229/283069.html" target="_blank">【極影字幕社】★ 出包王女 To Love Ru Darkness 第12集 BIG5 720p MP4</a></td>
-                        <td>146.8MB</td>
-                        <td class="bts-3">0</td>
-                        <td class="btl-3">0</td>
-                        <td class="btc-3">0</td>
-                        <td><a href="/team-1-1.html" class="team-name">极影字幕</a></td>                    </tr>*/
             String dateP = @"<td title=""([\d|/]* \d\d:\d\d)"">";
             String kindP = @"[\s\S]*?\.html"">(\S*?)<";
             String torrentP = @"[\s\S]*?href=""([\S]*?)""";
@@ -108,8 +101,8 @@ namespace Animation.ASource
                 item = new DMItem();
                 item.Date = match.Groups[1].ToString();
                 item.kind = match.Groups[2].ToString();
-                item.TorrentUrl = match.Groups[3].ToString();
-                item.DetailUrl = match.Groups[4].ToString();
+                item.TorrentUrl = HOME_URL+match.Groups[3].ToString();
+                item.DetailUrl = HOME_URL+match.Groups[4].ToString();
                 item.Title = NetUtils.stripHtml(match.Groups[5].ToString());
                 item.size = match.Groups[6].ToString();
                 item.pulisher = NetUtils.stripHtml(match.Groups[7].ToString());
@@ -120,9 +113,7 @@ namespace Animation.ASource
         }
 
         public void getTorrent(string tURL, string PathName) {
-            throw new NotImplementedException();
-        }
-
-        
+            NetUtils.getFile(tURL, PathName);
+        }        
     }
 }

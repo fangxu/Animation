@@ -15,5 +15,12 @@ namespace Animation
         static public IASource createKTXP() {
             return new KTXP();
         }
+
+        internal static IASource create(ResourcesKind currentRK) {
+            if (currentRK == ResourcesKind.DMHY) {
+                return new DMHY();
+            }
+            return new KTXP();
+        }
     }
 }

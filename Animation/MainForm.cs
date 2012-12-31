@@ -24,10 +24,12 @@ namespace Animation
         private String currentXinFan = null;
         //所有星期
         List<String> allWeek = null;
-        //资源类别
-/*        Dictionary<String, String> kinds = null;*/
+        //当前来源
+        ResourcesKind currentRK;
 
-        IASource source = Factory.createKTXP();
+        /*        Dictionary<String, String> kinds = null;*/
+
+        IASource source;
 
         public MainForm() {
             EXEPath = System.Environment.CurrentDirectory;
@@ -50,6 +52,10 @@ namespace Animation
             ImageList imageList1 = new ImageList();
             imageList1.ImageSize = new Size(1, 25);
             listView1.SmallImageList = imageList1;
+            //来源初始化
+            toolStripComboBoxSources.SelectedIndex = 0;
+            currentRK = ResourcesKind.DMHY;
+            source = Factory.create(currentRK);
             //初始化
             Thread t = new Thread(initIndex);
             t.IsBackground = true;
@@ -149,27 +155,6 @@ namespace Animation
             EnabledUI(true);
 
         }
-        /************************************************************************/
-        /* 根据url获取新番List。                                                */
-        /************************************************************************/
-        //         private List<DMItem> getDMItemList(String url)
-        //         {
-        //             EnabledUI(false);
-        //             return source.getDMItem(url);
-        //         }
-        /************************************************************************/
-        /* 获取item并更新ListView，多线程。                                     */
-        /************************************************************************/
-        //         private void GetUpdate(String url)
-        //         {
-        //             Thread t = new Thread(() =>
-        //             {
-        //                 itemList = getDMItemList(url);
-        //                 UpdateListView();
-        //             });
-        //             t.IsBackground = true;
-        //             t.Start();
-        //         }
 
         private void GetUpdate(Kind kind, string keywords) {
             EnabledUI(false);
@@ -255,6 +240,12 @@ namespace Animation
         /* 鼠标右键，搜索当前选中的新番组+当前新番或搜索词                      */
         /************************************************************************/
         private void ToolStripMenuItemTeam_Click(object sender, EventArgs e) {
+            if (currentRK==ResourcesKind.KTXP)
+            {
+                MessageBox.Show("KTXP资源不支持该功能。");
+                return;
+            } 
+
             if (currentXinFan == null) {
                 MessageBox.Show("缺少关键字。");
                 return;
@@ -368,7 +359,6 @@ namespace Animation
         /************************************************************************/
         private void XinFanName_MouseDown(object sender, EventArgs e) {
             currentXinFan = bill[currentWeek][sender.ToString()];
-            /*            String url = @"http://share.dmhy.org/topics/list?keyword=" + currentXinFan;*/
             GetUpdate(Kind.ALL, currentXinFan);
         }
 
@@ -377,11 +367,7 @@ namespace Animation
         /* 点击搜索按钮，根据combox的kind搜索，获取List并更新                   */
         /************************************************************************/
         private void searchButton_Click(object sender, EventArgs e) {
-            //             currentXinFan = kinds[toolStripComboBox2.SelectedItem.ToString()]
-            //                 + "+" + toolStripTextBox1.Text;
-            //             String url = @"http://share.dmhy.org/topics/list?keyword=" + currentXinFan;
             GetUpdate((Kind)toolStripComboBox2.SelectedIndex, toolStripTextBox1.Text);
-            //SearchUpdate()
         }
         /************************************************************************/
         /* 在搜索框点击键盘的enter键，调用搜索按钮的响应。                      */
@@ -396,6 +382,21 @@ namespace Animation
         /************************************************************************/
         private void Form1_FormClosing(object sender, FormClosingEventArgs e) {
             Directory.Delete(EXEPath + "/torrent", true);
+        }
+        /************************************************************************/
+        /* 选择来源                                                             */
+        /************************************************************************/
+        private void toolStripComboBoxSources_SelectedIndexChanged(object sender, EventArgs e) {
+            int index = ((ToolStripComboBox)sender).SelectedIndex;
+            if ((int)currentRK == index) {
+                return;
+            }
+            currentRK = (ResourcesKind)index;
+            source = Factory.create(currentRK);
+            EnabledUI(false);
+            Thread t = new Thread(initIndex);
+            t.IsBackground = true;
+            t.Start();
         }
     }
 }

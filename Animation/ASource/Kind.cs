@@ -22,4 +22,10 @@ RAW
         MUSIC,
         RAW
     }
+
+    public enum ResourcesKind
+    {
+        DMHY=0,
+        KTXP=1
+    }
 }

@@ -55,7 +55,7 @@ namespace Animation
 
         public System.String DetailUrl {
             get { return detailUrl; }
-            set { detailUrl = @"http://share.dmhy.org" + value; }
+            set { detailUrl =  value; }
         }
         public String TorrentName {
             get {
@@ -65,7 +65,7 @@ namespace Animation
         }
         public System.String TorrentUrl {
             get { return torrentUrl; }
-            set { torrentUrl = @"http://share.dmhy.org" + value; }
+            set { torrentUrl =  value; }
         }
         public System.String Title {
             get {

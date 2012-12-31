@@ -13,7 +13,7 @@ namespace Animation.ASource
     {
         List<String> allWeek;
         Dictionary<Kind, String> kind2url;
-        const String HOME_URL = @"http://share.dmhy.org/";
+        const String HOME_URL = @"http://share.dmhy.org";
 
         public DMHY() {
             allWeek = new List<String>();
@@ -54,7 +54,7 @@ namespace Animation.ASource
         }
 
         public List<DMItem> getDMItem(string url = null) {
-            url = url == null ? "http://share.dmhy.org/" : url;
+            url = url == null ? HOME_URL : url;
             String html = NetUtils.getHtml(url);
             html = NetUtils.formateHtml(html);
             if (html == null) {
@@ -77,7 +77,7 @@ namespace Animation.ASource
                 item = new DMItem();
                 item.Date = match.Groups[1].ToString();
                 item.kind = match.Groups[2].ToString();
-                item.TorrentUrl = match.Groups[4].ToString();
+                item.TorrentUrl = HOME_URL + match.Groups[4].ToString();
                 item.Title = NetUtils.stripHtml(match.Groups[3].ToString());
                 item.size = match.Groups[5].ToString();
                 item.pulisher = NetUtils.stripHtml(match.Groups[6].ToString());
@@ -86,14 +86,14 @@ namespace Animation.ASource
                     String s1 = s[0];
                     item.Title = NetUtils.stripHtml(rgx1.Match(s1).Groups[1].ToString());
                     item.Team = null;
-                    item.DetailUrl = rgx2.Match(s1).Groups[1].ToString();
+                    item.DetailUrl = HOME_URL+rgx2.Match(s1).Groups[1].ToString();
                 } else {
                     String s1 = s[0];
                     item.Team = s1.Substring(s1.LastIndexOf('>') + 1, s1.Length - s1.LastIndexOf('>') - 1);
                     item.TeamID = s1.Substring(s1.LastIndexOf('/') + 1, s1.LastIndexOf('"') - s1.LastIndexOf('/') - 1);
                     s1 = s[1];
                     item.Title = NetUtils.stripHtml(rgx1.Match(s1).Groups[1].ToString());
-                    item.DetailUrl = rgx2.Match(s1).Groups[1].ToString();
+                    item.DetailUrl = HOME_URL + rgx2.Match(s1).Groups[1].ToString();
                 }
                 list.Add(item);
             }
@@ -184,14 +184,14 @@ namespace Animation.ASource
                     String s1 = s[0];
                     item.Title = NetUtils.stripHtml(rgx1.Match(s1).Groups[1].ToString());
                     item.Team = null;
-                    item.DetailUrl = rgx2.Match(s1).Groups[1].ToString();
+                    item.DetailUrl = HOME_URL + rgx2.Match(s1).Groups[1].ToString();
                 } else {
                     String s1 = s[0];
                     item.Team = s1.Substring(s1.LastIndexOf('>') + 1, s1.Length - s1.LastIndexOf('>') - 1);
                     item.TeamID = s1.Substring(s1.LastIndexOf('/') + 1, s1.LastIndexOf('"') - s1.LastIndexOf('/') - 1);
                     s1 = s[1];
                     item.Title = NetUtils.stripHtml(rgx1.Match(s1).Groups[1].ToString());
-                    item.DetailUrl = rgx2.Match(s1).Groups[1].ToString();
+                    item.DetailUrl = HOME_URL + rgx2.Match(s1).Groups[1].ToString();
                 }
                 items.Add(item);
             }

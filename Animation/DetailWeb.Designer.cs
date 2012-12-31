@@ -50,6 +50,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "DetailWeb";
             this.Text = "DetailWeb";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.DetailWeb_FormClosed);
             this.ResumeLayout(false);
 
         }

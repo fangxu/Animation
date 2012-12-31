@@ -57,6 +57,8 @@
             this.toolStripTextBox1 = new System.Windows.Forms.ToolStripTextBox();
             this.toolStripMenuItem9 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStripName = new System.Windows.Forms.MenuStrip();
+            this.toolStripTextBox2 = new System.Windows.Forms.ToolStripTextBox();
+            this.toolStripComboBoxSources = new System.Windows.Forms.ToolStripComboBox();
             this.contextMenuStrip1.SuspendLayout();
             this.toolStripContainer1.ContentPanel.SuspendLayout();
             this.toolStripContainer1.TopToolStripPanel.SuspendLayout();
@@ -73,12 +75,12 @@
             this.ToolStripMenuItemOpen,
             this.ToolStripMenuItemTeam});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 136);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(113, 114);
             // 
             // ToolStripMenuItemDetail
             // 
             this.ToolStripMenuItemDetail.Name = "ToolStripMenuItemDetail";
-            this.ToolStripMenuItemDetail.Size = new System.Drawing.Size(152, 22);
+            this.ToolStripMenuItemDetail.Size = new System.Drawing.Size(112, 22);
             this.ToolStripMenuItemDetail.Text = "介绍";
             this.ToolStripMenuItemDetail.Click += new System.EventHandler(this.MouseMenuDetail_Click);
             // 
@@ -88,7 +90,7 @@
             this.ToolStripMenuItemTitleCopy,
             this.ToolStripMenuItemtorrentCopy});
             this.ToolStripMenuItemCopy.Name = "ToolStripMenuItemCopy";
-            this.ToolStripMenuItemCopy.Size = new System.Drawing.Size(152, 22);
+            this.ToolStripMenuItemCopy.Size = new System.Drawing.Size(112, 22);
             this.ToolStripMenuItemCopy.Text = "复制";
             // 
             // ToolStripMenuItemTitleCopy
@@ -108,21 +110,21 @@
             // ToolStripMenuItemDownload
             // 
             this.ToolStripMenuItemDownload.Name = "ToolStripMenuItemDownload";
-            this.ToolStripMenuItemDownload.Size = new System.Drawing.Size(152, 22);
+            this.ToolStripMenuItemDownload.Size = new System.Drawing.Size(112, 22);
             this.ToolStripMenuItemDownload.Text = "下载";
             this.ToolStripMenuItemDownload.Click += new System.EventHandler(this.ToolStripMenuItemDownload_Click);
             // 
             // ToolStripMenuItemOpen
             // 
             this.ToolStripMenuItemOpen.Name = "ToolStripMenuItemOpen";
-            this.ToolStripMenuItemOpen.Size = new System.Drawing.Size(152, 22);
+            this.ToolStripMenuItemOpen.Size = new System.Drawing.Size(112, 22);
             this.ToolStripMenuItemOpen.Text = "打开";
             this.ToolStripMenuItemOpen.Click += new System.EventHandler(this.ToolStripMenuItemOpen_Click);
             // 
             // ToolStripMenuItemTeam
             // 
             this.ToolStripMenuItemTeam.Name = "ToolStripMenuItemTeam";
-            this.ToolStripMenuItemTeam.Size = new System.Drawing.Size(152, 22);
+            this.ToolStripMenuItemTeam.Size = new System.Drawing.Size(112, 22);
             this.ToolStripMenuItemTeam.Text = "字幕组";
             this.ToolStripMenuItemTeam.Click += new System.EventHandler(this.ToolStripMenuItemTeam_Click);
             // 
@@ -204,7 +206,9 @@
             this.ToolStripMenuItem7,
             this.toolStripComboBox2,
             this.toolStripTextBox1,
-            this.toolStripMenuItem9});
+            this.toolStripMenuItem9,
+            this.toolStripTextBox2,
+            this.toolStripComboBoxSources});
             this.menuStripWeek.Location = new System.Drawing.Point(0, 0);
             this.menuStripWeek.Name = "menuStripWeek";
             this.menuStripWeek.Size = new System.Drawing.Size(909, 29);
@@ -304,6 +308,23 @@
             this.menuStripName.TabIndex = 1;
             this.menuStripName.Text = "menuStrip1";
             // 
+            // toolStripTextBox2
+            // 
+            this.toolStripTextBox2.Name = "toolStripTextBox2";
+            this.toolStripTextBox2.ReadOnly = true;
+            this.toolStripTextBox2.Size = new System.Drawing.Size(40, 25);
+            this.toolStripTextBox2.Text = "来源：";
+            // 
+            // toolStripComboBoxSources
+            // 
+            this.toolStripComboBoxSources.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.toolStripComboBoxSources.Items.AddRange(new object[] {
+            "DMHY",
+            "KTXP"});
+            this.toolStripComboBoxSources.Name = "toolStripComboBoxSources";
+            this.toolStripComboBoxSources.Size = new System.Drawing.Size(75, 25);
+            this.toolStripComboBoxSources.SelectedIndexChanged += new System.EventHandler(this.toolStripComboBoxSources_SelectedIndexChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -355,6 +376,8 @@
         private System.Windows.Forms.ToolStripTextBox toolStripTextBox1;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem9;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItemTeam;
+        private System.Windows.Forms.ToolStripTextBox toolStripTextBox2;
+        private System.Windows.Forms.ToolStripComboBox toolStripComboBoxSources;
     }
 }
 
