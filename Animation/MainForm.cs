@@ -48,7 +48,7 @@ namespace Animation
             imageList1.ImageSize = new Size(1, 25);
             listView1.SmallImageList = imageList1;
             //来源初始化
-            currentRK = ResourcesKind.KTXP;
+            currentRK = ResourcesKind.DMHY;
             source = Factory.create(currentRK);
             toolStripComboBoxSources.SelectedIndex = (int)currentRK;
             
