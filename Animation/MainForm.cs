@@ -27,8 +27,6 @@ namespace Animation
         //当前来源
         ResourcesKind currentRK;
 
-        /*        Dictionary<String, String> kinds = null;*/
-
         IASource source;
 
         public MainForm() {
@@ -36,10 +34,7 @@ namespace Animation
             if (!Directory.Exists(EXEPath + "/torrent")) {
                 Directory.CreateDirectory(EXEPath + "/torrent");
             }
-            InitializeComponent();
-            //窗口非使能
-            EnabledUI(false);
-
+            InitializeComponent(); 
             //所有星期初始化
             allWeek = new List<String>();
             allWeek.AddRange(new String[] { "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日" });
@@ -53,10 +48,13 @@ namespace Animation
             imageList1.ImageSize = new Size(1, 25);
             listView1.SmallImageList = imageList1;
             //来源初始化
-            toolStripComboBoxSources.SelectedIndex = 0;
-            currentRK = ResourcesKind.DMHY;
+            currentRK = ResourcesKind.KTXP;
             source = Factory.create(currentRK);
+            toolStripComboBoxSources.SelectedIndex = (int)currentRK;
+            
             //初始化
+            //窗口非使能
+            EnabledUI(false);
             Thread t = new Thread(initIndex);
             t.IsBackground = true;
             t.Start();

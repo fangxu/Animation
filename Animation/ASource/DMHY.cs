@@ -138,9 +138,11 @@ namespace Animation.ASource
 
 
         public void getBillAndItems(out Dictionary<string, Dictionary<string, string>> bill, out List<DMItem> items) {
+            Console.WriteLine("getHtml begin");
             String html = NetUtils.getHtml(HOME_URL);
+            Console.WriteLine("getHtml done");
             html = NetUtils.formateHtml(html);
-            
+            Console.WriteLine("getBill begin");
             String pattern = null;
             MatchCollection matches = null;            
             bill = new Dictionary<String, Dictionary<String, String>>();
@@ -156,8 +158,8 @@ namespace Animation.ASource
                 }
                 bill.Add(week, playbill);
             }
-
-
+            Console.WriteLine("getBill done");
+            Console.WriteLine("getDMItem begin");
             String dateP = @"<span style=""display: none;"">([\d|/]* \d\d:\d\d)<";
             String kindP = @"[\s\S]*?<font color=\S*?>(\S*?)<";
             String titleP = @"[\s\S]*?<td class=""title"">([\s\S]*?)</td>";
@@ -195,6 +197,7 @@ namespace Animation.ASource
                 }
                 items.Add(item);
             }
+            Console.WriteLine("getDMItem done");
         }
     }
 }
