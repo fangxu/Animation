@@ -13,5 +13,6 @@ namespace Animation.ASource
         List<DMItem> getDMItem(Kind kind, String keywords = null);
         void getTorrent(String tURL, String PathName);
         String getDetailHtml(String url);
+        String getComment(String url);
     }
 }

@@ -160,5 +160,10 @@ namespace Animation.ASource
         public void getTorrent(string tURL, string PathName) {
             NetUtils.getFile(tURL, PathName);
         }
+
+
+        public string getComment(string url) {
+            return null;
+        }
     }
 }

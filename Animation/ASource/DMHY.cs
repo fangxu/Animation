@@ -86,7 +86,7 @@ namespace Animation.ASource
                     String s1 = s[0];
                     item.Title = NetUtils.stripHtml(rgx1.Match(s1).Groups[1].ToString());
                     item.Team = null;
-                    item.DetailUrl = HOME_URL+rgx2.Match(s1).Groups[1].ToString();
+                    item.DetailUrl = HOME_URL + rgx2.Match(s1).Groups[1].ToString();
                 } else {
                     String s1 = s[0];
                     item.Team = s1.Substring(s1.LastIndexOf('>') + 1, s1.Length - s1.LastIndexOf('>') - 1);
@@ -100,7 +100,7 @@ namespace Animation.ASource
             return list;
         }
 
-        public List<DMItem> getDMItem(Kind kind,string keywords=null) {
+        public List<DMItem> getDMItem(Kind kind, string keywords = null) {
             String url = @"http://share.dmhy.org/topics/list?keyword="
                 + keywords + " " + kind2url[kind];
             return getDMItem(url);
@@ -130,10 +130,11 @@ namespace Animation.ASource
 
         public string getDetailHtml(string url) {
             String html = Utils.NetUtils.getHtml(url);
-            String patten=@"(<div class=""topic-nfo box ui-corner-all"">[\s\S]*?)<div id=""play-asia"" class=""box ui-corner-all"">";
+            String patten = @"(<div class=""topic-nfo box ui-corner-all"">[\s\S]*?)<div id=""play-asia"" class=""box ui-corner-all"">";
             Match m = Regex.Match(html, patten);
-            return @"<link href=""http://share.dmhy.org/min/g=css&v=10"" rel=""stylesheet"" type=""text/css"" />" 
-                + @"<div class=""topic-main"">" + m.Groups[1].ToString() + "</div>";
+            return @"<link href=""http://share.dmhy.org/min/g=css&v=10"" rel=""stylesheet"" type=""text/css"" />"
+                +@"<script type=""text/javascript"" src=""http://share.dmhy.org/min/g=js&amp;v=9""></script>"
+                + @"<div class=""topic-main"">" + m.Groups[1].ToString();
         }
 
 
@@ -144,7 +145,7 @@ namespace Animation.ASource
             html = NetUtils.formateHtml(html);
             Console.WriteLine("getBill begin");
             String pattern = null;
-            MatchCollection matches = null;            
+            MatchCollection matches = null;
             bill = new Dictionary<String, Dictionary<String, String>>();
             foreach (String week in allWeek) {
                 Dictionary<String, String> playbill = new Dictionary<String, String>();
@@ -198,6 +199,21 @@ namespace Animation.ASource
                 items.Add(item);
             }
             Console.WriteLine("getDMItem done");
+        }
+
+
+        public string getComment(string url) {
+            String id = null;
+            Match match = Regex.Match(url, @"/(\d*?)_");
+            id = match.Groups[1].ToString();
+            //http://share.dmhy.org/comment/recent/topic_id/284923
+            String commentUrl = @"http://share.dmhy.org/comment/recent/topic_id/" + id;
+            String comment = NetUtils.getHtml(commentUrl);
+            String pattern = @"(<div class=""comment_recent_main ui-corner-all"">[\s\S]*?</script>)";
+            String commentHtml = Regex.Match(comment, pattern).Groups[1].ToString();
+            commentHtml = commentHtml.Replace("src=\"/images/defaultUser.png", "src=\"http://share.dmhy.org/images/defaultUser.png");
+            return @"<div id=""recent-commnet"" class=""comment box ui-corner-all"">"
+                + commentHtml + "</div></div>";
         }
     }
 }

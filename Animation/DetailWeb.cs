@@ -11,7 +11,7 @@ namespace Animation
         private IASource source;
         Thread t;
 
-        public DetailWeb(String url, String title, IASource source = null) {
+        public DetailWeb(String url, String title, IASource source) {
             InitializeComponent();
             webBrowser1.DocumentText = @"<h1>正在加载。。。</h1>";
             this.Text = title;
@@ -23,13 +23,14 @@ namespace Animation
             t = new Thread(() =>
              {
                  String html = source.getDetailHtml(url);
+                 String comment = source.getComment(url);
                  if (this.InvokeRequired) {
                      this.BeginInvoke(new MethodInvoker(() =>
                          {
-                             webBrowser1.DocumentText = html;
+                             webBrowser1.DocumentText = html+comment;
                          }));
                  } else {
-                     webBrowser1.DocumentText = html;
+                     webBrowser1.DocumentText = html+comment;
                  }
 
              });
