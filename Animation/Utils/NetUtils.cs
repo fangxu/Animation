@@ -5,38 +5,27 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace Animation.Utils
 {
     class NetUtils
     {
         public static String getHtml(String url) {
-
+            Stopwatch sw = new Stopwatch();
+            Console.WriteLine("getHtml begin");
+            sw.Start();
             WebClient webClient = new WebClient();
-            byte[] reqHTML;
+            //byte[] reqHTML;
             String temp = null;
-            
-            reqHTML = webClient.DownloadData(url);
-            temp = System.Text.Encoding.UTF8.GetString(reqHTML);
-            //             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            //             request.Timeout = 30 * 1000;
-            //             request.Method = "GET";
-            //             request.UserAgent = "Mozilla/5.0";
-            //             request.KeepAlive = true;
-            // 
-            //             String temp = null;
-            //             try {
-            //                 using (Stream rs = request.GetResponse().GetResponseStream()) {
-            //                     using (StreamReader sr = new StreamReader(rs, Encoding.UTF8)) {
-            //                         temp = sr.ReadToEnd();
-            //                     }
-            //                 }
-            //             } catch (System.Exception ex) {
-            //                 MessageBox.Show(null, ex.ToString(), "无法采集数据，请稍后再试。");
-            //             } finally {
-            //             }
-
-            return Strings.StrConv(temp, VbStrConv.SimplifiedChinese, 0); ;
+            webClient.Encoding = Encoding.UTF8;
+            webClient.Headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            webClient.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/20100101 Firefox/17.0");
+            temp = webClient.DownloadString(url);
+            webClient.Dispose();
+            sw.Stop();
+            Console.WriteLine("getHtml done：" + sw.Elapsed.ToString());
+            return Strings.StrConv(temp, VbStrConv.SimplifiedChinese, 0);
         }
 
         public static string stripHtml(string strhtml) {
